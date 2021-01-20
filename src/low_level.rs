@@ -2,6 +2,7 @@ use crate::FanotifyPath;
 use lazy_static::lazy_static;
 use libc;
 use libc::{__s32, __u16, __u32, __u64, __u8};
+use std::ffi::CString;
 use std::io::Error;
 use std::mem;
 use std::os::unix::ffi::OsStrExt;
@@ -342,6 +343,7 @@ pub fn fanotify_init(flags: u32, event_f_flags: u32) -> Result<i32, Error> {
 /// let fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY).unwrap();
 /// fanotify_mark(fd, FAN_MARK_ADD, FAN_OPEN | FAN_CLOSE, AT_FDCWD, "./").unwrap();
 /// ```
+#[allow(temporary_cstring_as_ptr)]
 pub fn fanotify_mark<P: ?Sized + FanotifyPath>(
     fanotify_fd: i32,
     flags: u32,
@@ -355,12 +357,7 @@ pub fn fanotify_mark<P: ?Sized + FanotifyPath>(
             flags,
             mask,
             dirfd,
-            path.as_os_str()
-                .as_bytes()
-                .iter()
-                .map(|p| *p as i8)
-                .collect::<Vec<i8>>()
-                .as_ptr(),
+            CString::new(path.as_os_str().as_bytes()).unwrap().as_ptr(),
         ) {
             0 => {
                 return Ok(());
