@@ -1,7 +1,7 @@
 use crate::FanotifyPath;
-use lazy_static::lazy_static;
 use libc;
 use libc::{__s32, __u16, __u32, __u64, __u8};
+use once_cell::sync::Lazy;
 use std::ffi::CString;
 use std::io::Error;
 use std::mem;
@@ -51,10 +51,9 @@ pub struct fanotify_response {
     pub fd: __s32,
     pub response: __u32,
 }
-lazy_static! {
-    /// Get current platform sizeof of fanotify_event_metadata.
-    pub static ref FAN_EVENT_METADATA_LEN: usize = mem::size_of::<fanotify_event_metadata>();
-}
+/// Get current platform sizeof of fanotify_event_metadata.
+pub static FAN_EVENT_METADATA_LEN: Lazy<usize> =
+    Lazy::new(|| mem::size_of::<fanotify_event_metadata>());
 /// This const is used to be compared to vers field of fanotify_event_metadata to verify that the structures returned at run time match the structures defined at compile time.
 ///
 ///
